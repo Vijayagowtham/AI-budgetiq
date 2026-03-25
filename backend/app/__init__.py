@@ -1,3 +1,4 @@
+import os
 from flask import Flask, jsonify
 from flask_cors import CORS
 from config import Config
@@ -5,16 +6,19 @@ from config import Config
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    
-    CORS(app)
+
+    # Allow requests from both local dev and the deployed Vercel frontend
+    allowed_origins = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://ai-budgetiq.vercel.app",
+        os.environ.get("FRONTEND_URL", ""),
+    ]
+    CORS(app, origins=[o for o in allowed_origins if o], supports_credentials=True)
 
     with app.app_context():
-        import app.extensions as extensions
-        try:
-            if Config.SUPABASE_URL and Config.SUPABASE_KEY:
-                extensions.supabase_client = extensions.init_supabase()
-        except Exception as e:
-            print(f"Failed to initialize Supabase: {e}")
+        from app.extensions import init_db
+        init_db()
 
     # Register Blueprints
     try:
