@@ -1,5 +1,5 @@
 import { 
-  DollarSign, ArrowUpRight, ArrowDownRight, Activity, Bot, TrendingUp, TrendingDown
+  IndianRupee, ArrowUpRight, ArrowDownRight, Activity, Bot, TrendingUp, TrendingDown
 } from "lucide-react";
 import { fmt } from "../utils/currency";
 import { Card } from "../components/ui/Card";
@@ -83,7 +83,7 @@ export function Dashboard() {
               <div className="flex items-center justify-between mb-3">
                 <p className="text-sm font-medium text-slate-400">Total Balance</p>
                 <div className="p-2 bg-primary-500/10 text-primary-400 rounded-lg">
-                  <DollarSign size={20} />
+                  <IndianRupee size={20} />
                 </div>
               </div>
               <div className="text-3xl font-bold text-slate-50">{fmt(summary?.balance)}</div>
@@ -211,7 +211,7 @@ export function Dashboard() {
               ))
             ) : recentTransactions.length === 0 ? (
               <div className="py-10 text-center text-slate-500">
-                <DollarSign size={32} className="mx-auto mb-2 text-slate-700" />
+                <IndianRupee size={32} className="mx-auto mb-2 text-slate-700" />
                 <p className="text-sm">No transactions yet. Start adding income or expenses!</p>
               </div>
             ) : (

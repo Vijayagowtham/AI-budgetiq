@@ -1,7 +1,7 @@
 import { fmt } from "../utils/currency";
 import { 
   Plus, Search, ArrowDownRight, CreditCard, Coffee, ShoppingCart, Home, Car, 
-  Tag, Calendar, DollarSign, AlignLeft, Trash2, TrendingDown, Heart, 
+  Tag, Calendar, IndianRupee, AlignLeft, Trash2, TrendingDown, Heart, 
   GraduationCap, Zap, ShoppingBag
 } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -239,7 +239,7 @@ export function Expenses() {
         <form onSubmit={handleAddSubmit} className="space-y-5">
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-slate-300">Amount</label>
-            <Input name="amount" icon={DollarSign} type="number" step="0.01" min="0.01" placeholder="0.00" required />
+            <Input name="amount" icon={IndianRupee} type="number" step="0.01" min="0.01" placeholder="0.00" required />
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-slate-300">Category</label>

@@ -1,6 +1,6 @@
 import { fmt } from "../utils/currency";
 import { 
-  Plus, Search, ArrowUpRight, Wallet, Calendar, DollarSign, Trash2, TrendingUp
+  Plus, Search, ArrowUpRight, Wallet, Calendar, IndianRupee, Trash2, TrendingUp
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Card } from "../components/ui/Card";
@@ -204,7 +204,7 @@ export function Income() {
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-slate-300">Amount</label>
-            <Input name="amount" icon={DollarSign} type="number" step="0.01" min="0.01" placeholder="0.00" required />
+            <Input name="amount" icon={IndianRupee} type="number" step="0.01" min="0.01" placeholder="0.00" required />
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-slate-300">Date</label>
