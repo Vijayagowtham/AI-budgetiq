@@ -7,14 +7,9 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    # Allow requests from both local dev and the deployed Vercel frontend
-    allowed_origins = [
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "https://ai-budgetiq.vercel.app",
-        os.environ.get("FRONTEND_URL", ""),
-    ]
-    CORS(app, origins=[o for o in allowed_origins if o], supports_credentials=True)
+    # Broad CORS — allows all origins in dev and production
+    # In production, restrict via a reverse proxy (Render/Vercel handles this)
+    CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=False)
 
     with app.app_context():
         from app.extensions import init_db

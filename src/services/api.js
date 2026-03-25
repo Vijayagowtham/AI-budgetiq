@@ -15,10 +15,27 @@ const handleUnauthorized = () => {
 };
 
 const parseResponse = async (res) => {
-  const data = await res.json();
+  let data;
+  const contentType = res.headers.get('content-type') || '';
+  try {
+    if (contentType.includes('application/json')) {
+      data = await res.json();
+    } else {
+      // Non-JSON response (HTML error page, plain text, etc.)
+      const text = await res.text();
+      if (!res.ok) {
+        if (res.status === 401) handleUnauthorized();
+        throw new Error(`Server error (${res.status}). Please ensure the backend is running.`);
+      }
+      return text;
+    }
+  } catch (parseErr) {
+    if (parseErr.message.includes('Server error') || parseErr.message.includes('Unauthorized')) throw parseErr;
+    throw new Error('Unable to connect to server. Please check your connection and try again.');
+  }
   if (!res.ok) {
     if (res.status === 401) handleUnauthorized();
-    throw new Error(data.error || `Request failed with status ${res.status}`);
+    throw new Error(data?.error || data?.message || `Request failed with status ${res.status}`);
   }
   return data;
 };
