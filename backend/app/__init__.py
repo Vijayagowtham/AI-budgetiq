@@ -8,12 +8,15 @@ def create_app():
     app.config.from_object(Config)
 
     # Broad CORS — allows all origins in dev and production
-    # In production, restrict via a reverse proxy (Render/Vercel handles this)
     CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=False)
 
-    with app.app_context():
-        from app.extensions import init_db
-        init_db()
+    # Validate Supabase env vars on startup
+    if not Config.SUPABASE_URL or not Config.SUPABASE_KEY:
+        print(
+            "\n[STARTUP ERROR] SUPABASE_URL and SUPABASE_KEY are not set.\n"
+            "The API will fail on every database request.\n"
+            "Please create backend/.env with your Supabase credentials.\n"
+        )
 
     # Register Blueprints
     try:
@@ -21,7 +24,7 @@ def create_app():
         from app.routes.income_routes import income_bp
         from app.routes.expense_routes import expense_bp
         from app.routes.dashboard_routes import dashboard_bp
-        
+
         app.register_blueprint(auth_bp, url_prefix='/api/auth')
         app.register_blueprint(income_bp, url_prefix='/api/income')
         app.register_blueprint(expense_bp, url_prefix='/api/expense')
@@ -31,7 +34,7 @@ def create_app():
 
     @app.route('/health')
     def health_check():
-        return jsonify({"status": "healthy", "service": "BudgetIQ API"}), 200
+        return jsonify({"status": "healthy", "service": "BudgetIQ API", "db": "Supabase"}), 200
 
     @app.errorhandler(404)
     def not_found(e):

@@ -1,78 +1,84 @@
 from flask import Blueprint, jsonify, request
-from app.extensions import get_db
+from app.extensions import get_supabase
 from app.utils.middleware import token_required
 from app.services.ai_service import analyze_finances
 import datetime
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
+
+def _sum_column(rows, col='amount'):
+    return sum(float(r.get(col, 0)) for r in rows)
+
+
 @dashboard_bp.route('/summary', methods=['GET'])
 @token_required
 def get_summary(current_user_id):
     try:
-        conn = get_db()
-        income_rows = conn.execute('SELECT amount FROM income WHERE user_id = ?', (current_user_id,)).fetchall()
-        expense_rows = conn.execute('SELECT amount FROM expenses WHERE user_id = ?', (current_user_id,)).fetchall()
-        conn.close()
-        
-        total_income = sum(row['amount'] for row in income_rows)
-        total_expense = sum(row['amount'] for row in expense_rows)
+        sb = get_supabase()
+        uid = int(current_user_id)
+
+        income_rows = sb.table("income").select("amount").eq("user_id", uid).execute().data
+        expense_rows = sb.table("expenses").select("amount").eq("user_id", uid).execute().data
+
+        total_income = _sum_column(income_rows)
+        total_expense = _sum_column(expense_rows)
         balance = total_income - total_expense
         insight = analyze_finances(total_income, total_expense)
-        
+
         return jsonify({
             "total_income": total_income,
             "total_expense": total_expense,
             "balance": balance,
             "ai_insight": insight
         }), 200
-        
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @dashboard_bp.route('/monthly', methods=['GET'])
 @token_required
 def get_monthly(current_user_id):
     """Return income and expense totals for each of the last 6 calendar months."""
     try:
-        conn = get_db()
-        
+        sb = get_supabase()
+        uid = int(current_user_id)
+
+        # Build a list of (YYYY-MM prefix, short label) for the last 6 months
         months = []
         now = datetime.date.today()
         for i in range(5, -1, -1):
-            # Calculate the target month
-            month_offset = now.month - i - 1
-            year_offset = now.year + (month_offset // 12)
-            month_num = month_offset % 12 + 1
-            if month_num == 0:
-                month_num = 12
-                year_offset -= 1
-            # Build the YYYY-MM prefix
-            prefix = f"{year_offset:04d}-{month_num:02d}"
-            label = datetime.date(year_offset, month_num, 1).strftime("%b")
+            total_months = now.year * 12 + now.month - 1 - i
+            year = total_months // 12
+            month = total_months % 12 + 1
+            prefix = f"{year:04d}-{month:02d}"
+            label = datetime.date(year, month, 1).strftime("%b")
             months.append((prefix, label))
-        
+
+        # Fetch all income and expense data for this user once
+        all_income = sb.table("income").select("amount, date").eq("user_id", uid).execute().data
+        all_expenses = sb.table("expenses").select("amount, date").eq("user_id", uid).execute().data
+
         result = []
         for prefix, label in months:
-            income_rows = conn.execute(
-                "SELECT COALESCE(SUM(amount),0) as total FROM income WHERE user_id=? AND date LIKE ?",
-                (current_user_id, f"{prefix}%")
-            ).fetchone()
-            expense_rows = conn.execute(
-                "SELECT COALESCE(SUM(amount),0) as total FROM expenses WHERE user_id=? AND date LIKE ?",
-                (current_user_id, f"{prefix}%")
-            ).fetchone()
+            monthly_income = sum(
+                float(r["amount"]) for r in all_income if r.get("date", "").startswith(prefix)
+            )
+            monthly_expense = sum(
+                float(r["amount"]) for r in all_expenses if r.get("date", "").startswith(prefix)
+            )
             result.append({
                 "name": label,
-                "income": round(income_rows['total'], 2),
-                "expense": round(expense_rows['total'], 2),
+                "income": round(monthly_income, 2),
+                "expense": round(monthly_expense, 2),
             })
-        
-        conn.close()
+
         return jsonify({"data": result}), 200
-        
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @dashboard_bp.route('/ai_chat', methods=['POST'])
 @token_required
@@ -83,24 +89,28 @@ def ai_chat(current_user_id):
     message = data.get('message', '').strip()
     if not message:
         return jsonify({"error": "Message cannot be empty"}), 400
-    
+
     try:
-        conn = get_db()
-        income_rows = conn.execute('SELECT amount FROM income WHERE user_id = ?', (current_user_id,)).fetchall()
-        expense_rows = conn.execute('SELECT amount FROM expenses WHERE user_id = ?', (current_user_id,)).fetchall()
-        expense_cats = conn.execute(
-            'SELECT category, SUM(amount) as total FROM expenses WHERE user_id = ? GROUP BY category ORDER BY total DESC',
-            (current_user_id,)
-        ).fetchall()
-        conn.close()
-        
-        total_income = sum(row['amount'] for row in income_rows)
-        total_expense = sum(row['amount'] for row in expense_rows)
+        sb = get_supabase()
+        uid = int(current_user_id)
+
+        income_rows = sb.table("income").select("amount").eq("user_id", uid).execute().data
+        expense_rows = sb.table("expenses").select("amount, category").eq("user_id", uid).execute().data
+
+        total_income = _sum_column(income_rows)
+        total_expense = _sum_column(expense_rows)
         savings_rate = ((total_income - total_expense) / max(total_income, 1)) * 100
-        top_cat = expense_cats[0]['category'] if expense_cats else "general expenses"
-        
+
+        # Aggregate by category
+        cat_totals = {}
+        for r in expense_rows:
+            cat = r.get("category", "Other")
+            cat_totals[cat] = cat_totals.get(cat, 0) + float(r.get("amount", 0))
+        sorted_cats = sorted(cat_totals.items(), key=lambda x: x[1], reverse=True)
+        top_cat = sorted_cats[0][0] if sorted_cats else "general expenses"
+
         msg_lower = message.lower()
-        
+
         if any(w in msg_lower for w in ["reduce", "dining", "spending", "cut", "save"]):
             response = (
                 f"Based on your data, your highest spending category is **{top_cat}**. "
@@ -117,8 +127,8 @@ def ai_chat(current_user_id):
             response = f"Current savings rate: **{savings_rate:.1f}%**. {status}"
         elif any(w in msg_lower for w in ["analyze", "breakdown", "summary", "overview"]):
             response = analyze_finances(total_income, total_expense)
-            if expense_cats:
-                top_cats_str = ", ".join([f"{r['category']} (₹{r['total']:,.0f})" for r in expense_cats[:3]])
+            if sorted_cats:
+                top_cats_str = ", ".join([f"{cat} (₹{total:,.0f})" for cat, total in sorted_cats[:3]])
                 response += f" Your top spending categories are: {top_cats_str}."
         elif any(w in msg_lower for w in ["income", "earn", "salary"]):
             response = (
@@ -128,13 +138,13 @@ def ai_chat(current_user_id):
             )
         else:
             response = (
-                f"Here's a quick snapshot: Income **${total_income:,.2f}**, "
-                f"Expenses **${total_expense:,.2f}**, Balance **${(total_income - total_expense):,.2f}** "
+                f"Here's a quick snapshot: Income **₹{total_income:,.2f}**, "
+                f"Expenses **₹{total_expense:,.2f}**, Balance **₹{(total_income - total_expense):,.2f}** "
                 f"(savings rate: {savings_rate:.1f}%). "
                 f"Ask me specifically about your spending, savings goals, or categories for detailed insights."
             )
-            
+
         return jsonify({"response": response}), 200
-        
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500

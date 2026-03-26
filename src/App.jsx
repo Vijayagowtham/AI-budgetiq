@@ -10,6 +10,8 @@ import { Expenses } from './pages/Expenses';
 import { AIInsights } from './pages/AIInsights';
 import { Profile } from './pages/Profile';
 import { Reports } from './pages/Reports';
+import { Goals } from './pages/Goals';
+import { Demo } from './pages/Demo';
 import { ToastProvider } from './context/ToastContext';
 
 function App() {
@@ -17,8 +19,9 @@ function App() {
     <ToastProvider>
       <Router>
         <Routes>
-          {/* Public landing page */}
+          {/* Public routes */}
           <Route path="/" element={<Landing />} />
+          <Route path="/demo" element={<Demo />} />
 
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
@@ -32,6 +35,7 @@ function App() {
             <Route path="/expenses" element={<Expenses />} />
             <Route path="/insights" element={<AIInsights />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/goals" element={<Goals />} />
             <Route path="/profile" element={<Profile />} />
           </Route>
         </Routes>

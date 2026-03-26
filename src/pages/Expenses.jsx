@@ -2,7 +2,7 @@ import { fmt } from "../utils/currency";
 import { 
   Plus, Search, ArrowDownRight, CreditCard, Coffee, ShoppingCart, Home, Car, 
   Tag, Calendar, IndianRupee, AlignLeft, Trash2, TrendingDown, Heart, 
-  GraduationCap, Zap, ShoppingBag
+  GraduationCap, Zap, ShoppingBag, Download
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Card } from "../components/ui/Card";
@@ -82,6 +82,22 @@ export function Expenses() {
 
   const totalExpenses = expenseList.reduce((sum, e) => sum + (e.amount || 0), 0);
 
+  const today = new Date().toISOString().split('T')[0];
+
+  const exportCSV = () => {
+    const headers = ['Description', 'Category', 'Amount (INR)', 'Date'];
+    const rows = expenseList.map(e => [e.description || '', e.category, e.amount, e.date]);
+    const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `expenses-${today}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Expense data exported as CSV!');
+  };
+
   const handleAddSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -122,13 +138,21 @@ export function Expenses() {
           <h1 className="text-2xl font-bold text-slate-50">Expense Tracking</h1>
           <p className="text-sm text-slate-400 mt-1">Monitor and categorize your spending.</p>
         </div>
-        <Button 
-          onClick={() => setIsModalOpen(true)} 
-          className="w-full sm:w-auto bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 border-0"
-        >
-          <Plus size={18} className="mr-2" />
-          Add Expense
-        </Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          {expenseList.length > 0 && (
+            <Button variant="ghost" onClick={exportCSV} className="w-full sm:w-auto">
+              <Download size={16} className="mr-2" />
+              Export CSV
+            </Button>
+          )}
+          <Button 
+            onClick={() => setIsModalOpen(true)} 
+            className="w-full sm:w-auto bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-400 border-0"
+          >
+            <Plus size={18} className="mr-2" />
+            Add Expense
+          </Button>
+        </div>
       </div>
 
       {/* Summary Card */}
@@ -263,7 +287,7 @@ export function Expenses() {
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-slate-300">Date</label>
-            <Input name="date" icon={Calendar} type="date" required />
+            <Input name="date" icon={Calendar} type="date" defaultValue={today} required />
           </div>
           <div className="pt-3 flex gap-3 justify-end border-t border-slate-800 mt-2">
             <Button variant="ghost" type="button" onClick={() => setIsModalOpen(false)}>Cancel</Button>

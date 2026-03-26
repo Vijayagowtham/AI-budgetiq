@@ -122,7 +122,7 @@ export function Landing() {
               Sign in
             </Link>
             <Link
-              to="/signup"
+              to="/demo"
               className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white shadow-lg shadow-primary-500/25 transition-all hover:scale-[1.02] active:scale-[0.98] focus:outline-none"
             >
               Get started free
@@ -146,7 +146,7 @@ export function Landing() {
             <a href="#how-it-works" className="block text-sm text-slate-300 hover:text-slate-50" onClick={() => setMenuOpen(false)}>How it works</a>
             <div className="flex gap-3 pt-2 border-t border-slate-800">
               <Link to="/login" className="flex-1 text-center py-2.5 rounded-xl border border-slate-700 text-sm font-medium text-slate-300 hover:bg-slate-800 transition-colors" onClick={() => setMenuOpen(false)}>Sign in</Link>
-              <Link to="/signup" className="flex-1 text-center py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-sm font-semibold text-white transition-colors" onClick={() => setMenuOpen(false)}>Get started</Link>
+              <Link to="/demo" className="flex-1 text-center py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-sm font-semibold text-white transition-colors" onClick={() => setMenuOpen(false)}>Try demo</Link>
             </div>
           </div>
         )}
@@ -183,7 +183,7 @@ export function Landing() {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Link
-              to="/signup"
+              to="/demo"
               className="group inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white font-semibold text-base shadow-xl shadow-primary-500/30 transition-all hover:scale-[1.03] active:scale-[0.98]"
             >
               Start for free
@@ -355,10 +355,10 @@ export function Landing() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
-                  to="/signup"
+                  to="/demo"
                   className="group inline-flex items-center justify-center gap-2 px-10 py-4 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white font-bold text-lg shadow-xl shadow-primary-500/30 transition-all hover:scale-[1.03]"
                 >
-                  Create free account
+                  Try the demo
                   <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link

@@ -6,7 +6,8 @@ import {
   Sparkles, 
   PieChart, 
   User, 
-  LogOut 
+  LogOut,
+  Target
 } from "lucide-react";
 import { cn } from "../../utils/cn";
 import { Logo } from "../ui/Logo";
@@ -16,8 +17,9 @@ const navItems = [
   { name: "Income", path: "/income", icon: Wallet },
   { name: "Expenses", path: "/expenses", icon: CreditCard },
   { name: "AI Insights", path: "/insights", icon: Sparkles },
-  { name: "Reports", path: "/reports", icon: PieChart },
-  { name: "Profile", path: "/profile", icon: User },
+  { name: "Reports",     path: "/reports",  icon: PieChart },
+  { name: "Goals",       path: "/goals",    icon: Target },
+  { name: "Profile",     path: "/profile",  icon: User },
 ];
 
 export function Sidebar({ isOpen, onClose }) {

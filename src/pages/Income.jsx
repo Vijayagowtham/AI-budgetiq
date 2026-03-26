@@ -1,6 +1,6 @@
 import { fmt } from "../utils/currency";
 import { 
-  Plus, Search, ArrowUpRight, Wallet, Calendar, IndianRupee, Trash2, TrendingUp
+  Plus, Search, ArrowUpRight, Wallet, Calendar, IndianRupee, Trash2, TrendingUp, Download
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Card } from "../components/ui/Card";
@@ -55,6 +55,22 @@ export function Income() {
 
   const totalIncome = incomeList.reduce((sum, i) => sum + (i.amount || 0), 0);
 
+  const today = new Date().toISOString().split('T')[0];
+
+  const exportCSV = () => {
+    const headers = ['Source', 'Amount (INR)', 'Date'];
+    const rows = incomeList.map(i => [i.source, i.amount, i.date]);
+    const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `income-${today}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Income data exported as CSV!');
+  };
+
   const handleAddSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -94,10 +110,18 @@ export function Income() {
           <h1 className="text-2xl font-bold text-slate-50">Income Tracking</h1>
           <p className="text-sm text-slate-400 mt-1">Manage and track all your incoming funds.</p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} className="w-full sm:w-auto">
-          <Plus size={18} className="mr-2" />
-          Add Income
-        </Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          {incomeList.length > 0 && (
+            <Button variant="ghost" onClick={exportCSV} className="w-full sm:w-auto">
+              <Download size={16} className="mr-2" />
+              Export CSV
+            </Button>
+          )}
+          <Button onClick={() => setIsModalOpen(true)} className="w-full sm:w-auto">
+            <Plus size={18} className="mr-2" />
+            Add Income
+          </Button>
+        </div>
       </div>
 
       {/* Summary Card */}
@@ -208,7 +232,7 @@ export function Income() {
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-slate-300">Date</label>
-            <Input name="date" icon={Calendar} type="date" required />
+            <Input name="date" icon={Calendar} type="date" defaultValue={today} required />
           </div>
           <div className="pt-3 flex gap-3 justify-end border-t border-slate-800 mt-2">
             <Button variant="ghost" type="button" onClick={() => setIsModalOpen(false)}>Cancel</Button>
