@@ -12,3 +12,5 @@ services:
         value: production
       - key: FRONTEND_URL
         value: https://ai-budgetiq.vercel.app
+      - key: GEMINI_API_KEY
+        sync: false

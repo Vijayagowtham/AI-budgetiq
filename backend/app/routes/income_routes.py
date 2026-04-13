@@ -29,7 +29,7 @@ def add_income(current_user_id):
     try:
         sb = get_supabase()
         result = sb.table("income").insert({
-            "user_id": int(current_user_id),
+            "user_id": current_user_id,
             "amount": amount,
             "source": source,
             "date": date
@@ -45,7 +45,7 @@ def add_income(current_user_id):
 def list_income(current_user_id):
     try:
         sb = get_supabase()
-        result = sb.table("income").select("*").eq("user_id", int(current_user_id)).order("date", desc=True).execute()
+        result = sb.table("income").select("*").eq("user_id", current_user_id).order("date", desc=True).execute()
         return jsonify({"data": result.data}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -57,7 +57,7 @@ def delete_income(current_user_id, id):
     try:
         sb = get_supabase()
         # Verify ownership first
-        check = sb.table("income").select("id").eq("id", id).eq("user_id", int(current_user_id)).execute()
+        check = sb.table("income").select("id").eq("id", id).eq("user_id", current_user_id).execute()
         if not check.data:
             return jsonify({"error": "Income not found or unauthorized"}), 404
 

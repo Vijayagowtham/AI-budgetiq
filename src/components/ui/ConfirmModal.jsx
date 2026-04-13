@@ -67,7 +67,7 @@ export function ConfirmModal({ isOpen, onClose, onConfirm, title, message, confi
             Cancel
           </button>
           <button
-            onClick={() => { onConfirm(); onClose(); }}
+            onClick={() => { onConfirm(); }}
             className={cn(
               "flex-1 h-10 rounded-lg text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900",
               confirmStyles[confirmVariant] || confirmStyles.danger,

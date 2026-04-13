@@ -30,7 +30,7 @@ def add_expense(current_user_id):
     try:
         sb = get_supabase()
         result = sb.table("expenses").insert({
-            "user_id": int(current_user_id),
+            "user_id": current_user_id,
             "amount": amount,
             "category": category,
             "description": description,
@@ -50,7 +50,7 @@ def list_expense(current_user_id):
         result = (
             sb.table("expenses")
             .select("id, user_id, amount, category, description, date")
-            .eq("user_id", int(current_user_id))
+            .eq("user_id", current_user_id)
             .order("date", desc=True)
             .execute()
         )
@@ -65,7 +65,7 @@ def delete_expense(current_user_id, id):
     try:
         sb = get_supabase()
         # Verify ownership first
-        check = sb.table("expenses").select("id").eq("id", id).eq("user_id", int(current_user_id)).execute()
+        check = sb.table("expenses").select("id").eq("id", id).eq("user_id", current_user_id).execute()
         if not check.data:
             return jsonify({"error": "Expense not found or unauthorized"}), 404
 

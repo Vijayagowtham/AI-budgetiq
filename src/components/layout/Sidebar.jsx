@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
@@ -5,7 +6,7 @@ import {
   CreditCard, 
   Sparkles, 
   PieChart, 
-  User, 
+  User as UserIcon, 
   LogOut,
   Target
 } from "lucide-react";
@@ -19,14 +20,31 @@ const navItems = [
   { name: "AI Insights", path: "/insights", icon: Sparkles },
   { name: "Reports",     path: "/reports",  icon: PieChart },
   { name: "Goals",       path: "/goals",    icon: Target },
-  { name: "Profile",     path: "/profile",  icon: User },
+  { name: "Profile",     path: "/profile",  icon: UserIcon },
 ];
 
 export function Sidebar({ isOpen, onClose }) {
   const navigate = useNavigate();
-  const userStr = localStorage.getItem("budgetiq_user");
-  const user = userStr ? JSON.parse(userStr) : null;
-  
+  const [user, setUser] = useState(null);
+
+  const loadUser = () => {
+    const userStr = localStorage.getItem("budgetiq_user");
+    if (userStr) {
+      try { setUser(JSON.parse(userStr)); } catch {}
+    }
+  };
+
+  useEffect(() => {
+    loadUser();
+    const handleStorage = () => loadUser();
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("user-updated", handleStorage);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("user-updated", handleStorage);
+    };
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem("budgetiq_token");
     localStorage.removeItem("budgetiq_user");

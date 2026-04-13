@@ -157,7 +157,7 @@ export function Reports() {
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
                     <XAxis dataKey="name" stroke="#475569" fontSize={11} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#475569" fontSize={11} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                    <YAxis stroke="#475569" fontSize={11} tickLine={false} axisLine={false} tickFormatter={v => `₹${v}`} />
                     <Tooltip
                       cursor={{ fill: '#1e293b70' }}
                       contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '10px' }}
