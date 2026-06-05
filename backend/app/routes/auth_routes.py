@@ -20,6 +20,9 @@ def register():
 
     if not email or not password or not full_name:
         return jsonify({"error": "Missing required fields"}), 400
+        
+    if len(password) < 8:
+        return jsonify({"error": "Password must be at least 8 characters long"}), 400
 
     try:
         sb = get_supabase()
@@ -49,7 +52,8 @@ def register():
         }), 201
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        print(f"Registration error: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
 
 
 @auth_bp.route('/login', methods=['POST'])
@@ -95,7 +99,8 @@ def login():
         }), 200
 
     except Exception as e:
-        return jsonify({"error": "Invalid login credentials", "details": str(e)}), 401
+        print(f"Login error: {e}")
+        return jsonify({"error": "Invalid login credentials"}), 401
 
 
 @auth_bp.route('/logout', methods=['POST'])
@@ -140,7 +145,8 @@ def update_profile(current_user_id):
         }), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Profile update error: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
 
 
 @auth_bp.route('/profile', methods=['DELETE'])
@@ -148,10 +154,12 @@ def update_profile(current_user_id):
 def delete_profile(current_user_id):
     try:
         sb = get_supabase()
-        # Cascading deletes will handle income/expenses if FK + ON DELETE CASCADE is set
+        # Note: True cascading deletes should be configured in PostgreSQL (ON DELETE CASCADE).
+        # We attempt manual cleanup here as a fallback, but if one fails, it may leave orphaned rows.
         sb.table("income").delete().eq("user_id", current_user_id).execute()
         sb.table("expenses").delete().eq("user_id", current_user_id).execute()
         sb.table("users").delete().eq("id", current_user_id).execute()
         return jsonify({"message": "Account deleted successfully"}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Profile deletion error: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500

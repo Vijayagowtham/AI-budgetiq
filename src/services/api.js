@@ -11,7 +11,7 @@ const getHeaders = () => {
 const handleUnauthorized = () => {
   localStorage.removeItem('budgetiq_token');
   localStorage.removeItem('budgetiq_user');
-  window.location.href = '/login';
+  window.dispatchEvent(new Event('auth-unauthorized'));
 };
 
 const parseResponse = async (res) => {
@@ -41,35 +41,39 @@ const parseResponse = async (res) => {
 };
 
 export const api = {
-  get: async (endpoint) => {
+  get: async (endpoint, options = {}) => {
     const res = await fetch(`${BASE_URL}${endpoint}`, {
-      headers: getHeaders()
+      ...options,
+      headers: { ...getHeaders(), ...options.headers }
     });
     return parseResponse(res);
   },
 
-  post: async (endpoint, payload) => {
+  post: async (endpoint, payload, options = {}) => {
     const res = await fetch(`${BASE_URL}${endpoint}`, {
+      ...options,
       method: 'POST',
-      headers: getHeaders(),
+      headers: { ...getHeaders(), ...options.headers },
       body: JSON.stringify(payload)
     });
     return parseResponse(res);
   },
 
-  put: async (endpoint, payload) => {
+  put: async (endpoint, payload, options = {}) => {
     const res = await fetch(`${BASE_URL}${endpoint}`, {
+      ...options,
       method: 'PUT',
-      headers: getHeaders(),
+      headers: { ...getHeaders(), ...options.headers },
       body: JSON.stringify(payload)
     });
     return parseResponse(res);
   },
 
-  delete: async (endpoint) => {
+  delete: async (endpoint, options = {}) => {
     const res = await fetch(`${BASE_URL}${endpoint}`, {
+      ...options,
       method: 'DELETE',
-      headers: getHeaders()
+      headers: { ...getHeaders(), ...options.headers }
     });
     return parseResponse(res);
   }

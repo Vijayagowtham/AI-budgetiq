@@ -39,7 +39,8 @@ def add_expense(current_user_id):
 
         return jsonify({"message": "Expense added successfully", "data": result.data[0] if result.data else {}}), 201
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Add expense error: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
 
 
 @expense_bp.route('/list', methods=['GET'])
@@ -54,9 +55,10 @@ def list_expense(current_user_id):
             .order("date", desc=True)
             .execute()
         )
-        return jsonify({"data": result.data}), 200
+        return jsonify({"data": result.data or []}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"List expense error: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
 
 
 @expense_bp.route('/<int:id>', methods=['DELETE'])
@@ -72,4 +74,5 @@ def delete_expense(current_user_id, id):
         sb.table("expenses").delete().eq("id", id).execute()
         return jsonify({"message": "Expense deleted successfully"}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Delete expense error: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500

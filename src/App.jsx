@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { AuthLayout } from './components/layout/AuthLayout';
 import { MainLayout } from './components/layout/MainLayout';
 import { Landing } from './pages/Landing';
@@ -14,10 +15,23 @@ import { Goals } from './pages/Goals';
 import { Demo } from './pages/Demo';
 import { ToastProvider } from './context/ToastContext';
 
+function GlobalAuthListener() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      navigate('/login', { replace: true });
+    };
+    window.addEventListener('auth-unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth-unauthorized', handleUnauthorized);
+  }, [navigate]);
+  return null;
+}
+
 function App() {
   return (
     <ToastProvider>
       <Router>
+        <GlobalAuthListener />
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Landing />} />

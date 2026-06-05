@@ -7,8 +7,8 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    # Broad CORS — allows all origins in dev and production
-    CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=False)
+    # Broad CORS — restricted to frontend URL in production
+    CORS(app, resources={r"/api/*": {"origins": Config.FRONTEND_URL}}, supports_credentials=True)
 
     # Validate Supabase env vars on startup
     if not Config.SUPABASE_URL or not Config.SUPABASE_KEY:

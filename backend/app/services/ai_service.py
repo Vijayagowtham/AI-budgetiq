@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 
 try:
-    import google.generativeai as genai
+    from google import genai
 except ImportError:
     genai = None
 
@@ -25,13 +25,12 @@ def _get_api_key():
 _api_key = _get_api_key()
 if _api_key and genai is not None:
     try:
-        genai.configure(api_key=_api_key)
-        _model = genai.GenerativeModel("gemini-2.0-flash")
+        _client = genai.Client(api_key=_api_key)
     except Exception as e:
         print(f"Error configuring Gemini: {e}")
-        _model = None
+        _client = None
 else:
-    _model = None
+    _client = None
 
 
 def analyze_finances(total_income: float, total_expense: float) -> str:
@@ -71,7 +70,7 @@ def chat_with_llm(user_message: str, financial_context: dict) -> str:
             "and restart the backend to enable intelligent responses."
         )
 
-    if _model is None:
+    if _client is None:
         return (
             "The AI service is not configured. Please set the GEMINI_API_KEY "
             "environment variable to enable intelligent responses."
@@ -106,7 +105,10 @@ Rules:
 User's question: {user_message}"""
 
     try:
-        response = _model.generate_content(prompt)
+        response = _client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt
+        )
         return response.text.strip()
     except Exception as e:
         err = str(e).lower()

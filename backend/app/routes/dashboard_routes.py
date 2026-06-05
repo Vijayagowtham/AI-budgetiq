@@ -8,6 +8,8 @@ dashboard_bp = Blueprint('dashboard', __name__)
 
 
 def _sum_column(rows, col='amount'):
+    if not rows:
+        return 0.0
     return sum(float(r.get(col, 0)) for r in rows)
 
 
@@ -18,8 +20,8 @@ def get_summary(current_user_id):
         sb = get_supabase()
         uid = current_user_id
 
-        income_rows = sb.table("income").select("amount").eq("user_id", uid).execute().data
-        expense_rows = sb.table("expenses").select("amount").eq("user_id", uid).execute().data
+        income_rows = sb.table("income").select("amount").eq("user_id", uid).execute().data or []
+        expense_rows = sb.table("expenses").select("amount").eq("user_id", uid).execute().data or []
 
         total_income = _sum_column(income_rows)
         total_expense = _sum_column(expense_rows)
@@ -34,7 +36,8 @@ def get_summary(current_user_id):
         }), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Summary error: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
 
 
 @dashboard_bp.route('/monthly', methods=['GET'])
@@ -56,9 +59,10 @@ def get_monthly(current_user_id):
             label = datetime.date(year, month, 1).strftime("%b")
             months.append((prefix, label))
 
-        # Fetch all income and expense data for this user once
-        all_income = sb.table("income").select("amount, date").eq("user_id", uid).execute().data
-        all_expenses = sb.table("expenses").select("amount, date").eq("user_id", uid).execute().data
+        # Fetch all income and expense data for this user from the start date onwards
+        start_date_str = f"{months[0][0]}-01"
+        all_income = sb.table("income").select("amount, date").eq("user_id", uid).gte("date", start_date_str).execute().data or []
+        all_expenses = sb.table("expenses").select("amount, date").eq("user_id", uid).gte("date", start_date_str).execute().data or []
 
         result = []
         for prefix, label in months:
@@ -77,7 +81,8 @@ def get_monthly(current_user_id):
         return jsonify({"data": result}), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Monthly stats error: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
 
 
 @dashboard_bp.route('/ai_chat', methods=['POST'])
@@ -95,8 +100,8 @@ def ai_chat(current_user_id):
         uid = current_user_id
 
         # Fetch live financial data to inject as context into the LLM prompt
-        income_rows  = sb.table("income").select("amount").eq("user_id", uid).execute().data
-        expense_rows = sb.table("expenses").select("amount, category").eq("user_id", uid).execute().data
+        income_rows  = sb.table("income").select("amount").eq("user_id", uid).execute().data or []
+        expense_rows = sb.table("expenses").select("amount, category").eq("user_id", uid).execute().data or []
 
         total_income  = _sum_column(income_rows)
         total_expense = _sum_column(expense_rows)
@@ -121,4 +126,5 @@ def ai_chat(current_user_id):
         return jsonify({"response": response}), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"AI chat error: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500

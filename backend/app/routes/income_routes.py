@@ -37,7 +37,8 @@ def add_income(current_user_id):
 
         return jsonify({"message": "Income added successfully", "data": result.data[0] if result.data else {}}), 201
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Add income error: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
 
 
 @income_bp.route('/list', methods=['GET'])
@@ -46,9 +47,10 @@ def list_income(current_user_id):
     try:
         sb = get_supabase()
         result = sb.table("income").select("*").eq("user_id", current_user_id).order("date", desc=True).execute()
-        return jsonify({"data": result.data}), 200
+        return jsonify({"data": result.data or []}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"List income error: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
 
 
 @income_bp.route('/<int:id>', methods=['DELETE'])
@@ -64,4 +66,5 @@ def delete_income(current_user_id, id):
         sb.table("income").delete().eq("id", id).execute()
         return jsonify({"message": "Income deleted successfully"}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Delete income error: {e}")
+        return jsonify({"error": "An internal server error occurred"}), 500
