@@ -32,7 +32,7 @@ export function Signup() {
       setSuccess(true);
       setTimeout(() => {
         navigate("/login");
-      }, 4000);
+      }, 1500);
     } catch (err) {
       setError(err.message || "Signup failed");
     } finally {
